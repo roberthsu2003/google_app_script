@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>天氣查詢</title>
+  
+  <!-- Bootstrap 5 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  
+  <style>
+    body {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+    
+    .weather-card {
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+      padding: 30px;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+    
+    .weather-header {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    
+    .weather-header h1 {
+      color: #667eea;
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+    
+    .search-box {
+      margin-bottom: 30px;
+    }
+    
+    .search-box input {
+      border-radius: 50px;
+      padding: 15px 25px;
+      font-size: 16px;
+      border: 2px solid #e0e0e0;
+    }
+    
+    .search-box input:focus {
+      border-color: #667eea;
+      box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+    }
+    
+    .search-box button {
+      border-radius: 50px;
+      padding: 15px 30px;
+      font-weight: bold;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      border: none;
+    }
+    
+    .search-box button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+    }
+    
+    .weather-result {
+      display: none;
+      animation: fadeIn 0.5s;
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .weather-main {
+      text-align: center;
+      padding: 20px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      border-radius: 15px;
+      color: white;
+      margin-bottom: 20px;
+    }
+    
+    .weather-icon {
+      width: 100px;
+      height: 100px;
+    }
+    
+    .temperature {
+      font-size: 48px;
+      font-weight: bold;
+      margin: 10px 0;
+    }
+    
+    .description {
+      font-size: 20px;
+      text-transform: capitalize;
+    }
+    
+    .weather-details {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 15px;
+    }
+    
+    .detail-item {
+      background: #f8f9fa;
+      padding: 15px;
+      border-radius: 10px;
+      text-align: center;
+    }
+    
+    .detail-item i {
+      font-size: 24px;
+      color: #667eea;
+      margin-bottom: 5px;
+    }
+    
+    .detail-label {
+      font-size: 12px;
+      color: #6c757d;
+      margin-bottom: 5px;
+    }
+    
+    .detail-value {
+      font-size: 18px;
+      font-weight: bold;
+      color: #333;
+    }
+    
+    .cache-badge {
+      display: inline-block;
+      padding: 5px 15px;
+      background: #28a745;
+      color: white;
+      border-radius: 20px;
+      font-size: 12px;
+      margin-top: 10px;
+    }
+    
+    .error-message {
+      display: none;
+      padding: 15px;
+      background: #f8d7da;
+      border: 1px solid #f5c6cb;
+      border-radius: 10px;
+      color: #721c24;
+      margin-bottom: 20px;
+    }
+    
+    .loading {
+      display: none;
+      text-align: center;
+      padding: 20px;
+    }
+    
+    .spinner-border {
+      width: 3rem;
+      height: 3rem;
+    }
+    
+    .example-cities {
+      text-align: center;
+      margin-top: 15px;
+      font-size: 14px;
+      color: #6c757d;
+    }
+    
+    .example-cities span {
+      cursor: pointer;
+      color: #667eea;
+      margin: 0 5px;
+      text-decoration: underline;
+    }
+    
+    .example-cities span:hover {
+      color: #764ba2;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="weather-card">
+      <!-- 標題 -->
+      <div class="weather-header">
+        <h1><i class="fas fa-cloud-sun"></i> 天氣查詢</h1>
+        <p class="text-muted">輸入城市名稱查詢當前天氣</p>
+      </div>
+      
+      <!-- 搜尋框 -->
+      <div class="search-box">
+        <div class="input-group">
+          <input type="text" 
+                 id="cityInput" 
+                 class="form-control" 
+                 placeholder="輸入城市名稱（英文）" 
+                 onkeypress="handleKeyPress(event)">
+          <button class="btn btn-primary" onclick="searchWeather()">
+            <i class="fas fa-search"></i> 查詢天氣
+          </button>
+        </div>
+        <div class="example-cities">
+          範例：
+          <span onclick="searchCity('Taipei')">Taipei</span>
+          <span onclick="searchCity('Tokyo')">Tokyo</span>
+          <span onclick="searchCity('London')">London</span>
+          <span onclick="searchCity('New York')">New York</span>
+        </div>
+      </div>
+      
+      <!-- 載入中 -->
+      <div class="loading" id="loading">
+        <div class="spinner-border text-primary" role="status">
+          <span class="visually-hidden">載入中...</span>
+        </div>
+        <p class="mt-3">查詢中，請稍候...</p>
+      </div>
+      
+      <!-- 錯誤訊息 -->
+      <div class="error-message" id="errorMessage">
+        <i class="fas fa-exclamation-circle"></i>
+        <span id="errorText"></span>
+      </div>
+      
+      <!-- 天氣結果 -->
+      <div class="weather-result" id="weatherResult">
+        <!-- 主要天氣資訊 -->
+        <div class="weather-main">
+          <h2 id="cityName">-</h2>
+          <img id="weatherIcon" class="weather-icon" src="" alt="天氣圖示">
+          <div class="temperature" id="temperature">-°C</div>
+          <div class="description" id="description">-</div>
+          <div>
+            <small>體感溫度：<span id="feelsLike">-</span>°C</small>
+          </div>
+          <div class="cache-badge" id="cacheBadge" style="display: none;">
+            <i class="fas fa-database"></i> 快取資料
+          </div>
+        </div>
+        
+        <!-- 詳細資訊 -->
+        <div class="weather-details">
+          <div class="detail-item">
+            <i class="fas fa-temperature-high"></i>
+            <div class="detail-label">最高溫</div>
+            <div class="detail-value" id="tempMax">-°C</div>
+          </div>
+          
+          <div class="detail-item">
+            <i class="fas fa-temperature-low"></i>
+            <div class="detail-label">最低溫</div>
+            <div class="detail-value" id="tempMin">-°C</div>
+          </div>
+          
+          <div class="detail-item">
+            <i class="fas fa-tint"></i>
+            <div class="detail-label">濕度</div>
+            <div class="detail-value" id="humidity">-%</div>
+          </div>
+          
+          <div class="detail-item">
+            <i class="fas fa-wind"></i>
+            <div class="detail-label">風速</div>
+            <div class="detail-value" id="windSpeed">- m/s</div>
+          </div>
+          
+          <div class="detail-item">
+            <i class="fas fa-eye"></i>
+            <div class="detail-label">能見度</div>
+            <div class="detail-value" id="visibility">- km</div>
+          </div>
+          
+          <div class="detail-item">
+            <i class="fas fa-cloud"></i>
+            <div class="detail-label">雲量</div>
+            <div class="detail-value" id="clouds">-%</div>
+          </div>
+          
+          <div class="detail-item">
+            <i class="fas fa-sunrise"></i>
+            <div class="detail-label">日出</div>
+            <div class="detail-value" id="sunrise">-</div>
+          </div>
+          
+          <div class="detail-item">
+            <i class="fas fa-sunset"></i>
+            <div class="detail-label">日落</div>
+            <div class="detail-value" id="sunset">-</div>
+          </div>
+        </div>
+        
+        <!-- 時間戳記 -->
+        <div class="text-center mt-3">
+          <small class="text-muted">
+            <i class="fas fa-clock"></i> 
+            更新時間：<span id="timestamp">-</span>
+          </small>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <script>
+    /**
+     * 查詢天氣
+     */
+    function searchWeather() {
+      var city = document.getElementById('cityInput').value.trim();
+      
+      if (!city) {
+        showError('請輸入城市名稱');
+        return;
+      }
+      
+      // 顯示載入中
+      showLoading();
+      
+      // 呼叫後端函式
+      google.script.run
+        .withSuccessHandler(onSuccess)
+        .withFailureHandler(onFailure)
+        .getWeather(city);
+    }
+    
+    /**
+     * 成功回調
+     */
+    function onSuccess(result) {
+      hideLoading();
+      
+      if (result.success) {
+        displayWeather(result);
+      } else {
+        showError(result.error);
+      }
+    }
+    
+    /**
+     * 失敗回調
+     */
+    function onFailure(error) {
+      hideLoading();
+      showError('系統錯誤：' + error.message);
+    }
+    
+    /**
+     * 顯示天氣資訊
+     */
+    function displayWeather(result) {
+      var data = result.data;
+      
+      // 隱藏錯誤訊息
+      document.getElementById('errorMessage').style.display = 'none';
+      
+      // 更新主要資訊
+      document.getElementById('cityName').textContent = data.city + ', ' + data.country;
+      document.getElementById('weatherIcon').src = 'https://openweathermap.org/img/wn/' + data.icon + '@2x.png';
+      document.getElementById('temperature').textContent = data.temperature + '°C';
+      document.getElementById('description').textContent = data.description;
+      document.getElementById('feelsLike').textContent = data.feelsLike;
+      
+      // 更新詳細資訊
+      document.getElementById('tempMax').textContent = data.tempMax + '°C';
+      document.getElementById('tempMin').textContent = data.tempMin + '°C';
+      document.getElementById('humidity').textContent = data.humidity + '%';
+      document.getElementById('windSpeed').textContent = data.windSpeed + ' m/s';
+      document.getElementById('visibility').textContent = data.visibility + ' km';
+      document.getElementById('clouds').textContent = data.clouds + '%';
+      document.getElementById('sunrise').textContent = data.sunrise;
+      document.getElementById('sunset').textContent = data.sunset;
+      
+      // 更新時間戳記
+      document.getElementById('timestamp').textContent = result.timestamp;
+      
+      // 顯示快取標記
+      var cacheBadge = document.getElementById('cacheBadge');
+      if (result.fromCache) {
+        cacheBadge.style.display = 'inline-block';
+      } else {
+        cacheBadge.style.display = 'none';
+      }
+      
+      // 顯示結果
+      document.getElementById('weatherResult').style.display = 'block';
+    }
+    
+    /**
+     * 顯示錯誤訊息
+     */
+    function showError(message) {
+      document.getElementById('errorText').textContent = message;
+      document.getElementById('errorMessage').style.display = 'block';
+      document.getElementById('weatherResult').style.display = 'none';
+    }
+    
+    /**
+     * 顯示載入中
+     */
+    function showLoading() {
+      document.getElementById('loading').style.display = 'block';
+      document.getElementById('errorMessage').style.display = 'none';
+      document.getElementById('weatherResult').style.display = 'none';
+    }
+    
+    /**
+     * 隱藏載入中
+     */
+    function hideLoading() {
+      document.getElementById('loading').style.display = 'none';
+    }
+    
+    /**
+     * 處理 Enter 鍵
+     */
+    function handleKeyPress(event) {
+      if (event.key === 'Enter') {
+        searchWeather();
+      }
+    }
+    
+    /**
+     * 快速搜尋城市
+     */
+    function searchCity(city) {
+      document.getElementById('cityInput').value = city;
+      searchWeather();
+    }
+    
+    // 頁面載入完成後，聚焦到輸入框
+    window.onload = function() {
+      document.getElementById('cityInput').focus();
+    };
+  </script>
+</body>
+</html>

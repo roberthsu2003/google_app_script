@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <meta charset="UTF-8">
+  <title>報表寄送機器人</title>
+  <style>
+    body {
+      font-family: Arial, "Microsoft JhengHei", sans-serif;
+      max-width: 600px;
+      margin: 40px auto;
+      padding: 20px;
+      background-color: #f5f5f5;
+    }
+    
+    .container {
+      background-color: white;
+      padding: 30px;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    
+    h1 {
+      color: #2c3e50;
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    
+    .form-group {
+      margin-bottom: 20px;
+    }
+    
+    label {
+      display: block;
+      margin-bottom: 5px;
+      color: #34495e;
+      font-weight: bold;
+    }
+    
+    input[type="text"],
+    input[type="email"],
+    input[type="time"],
+    select {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      box-sizing: border-box;
+      font-size: 14px;
+    }
+    
+    input[type="checkbox"] {
+      margin-right: 8px;
+    }
+    
+    .checkbox-label {
+      display: inline;
+      font-weight: normal;
+    }
+    
+    .button-group {
+      display: flex;
+      gap: 10px;
+      margin-top: 30px;
+    }
+    
+    button {
+      flex: 1;
+      padding: 12px;
+      border: none;
+      border-radius: 4px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+    
+    .btn-primary {
+      background-color: #3498db;
+      color: white;
+    }
+    
+    .btn-primary:hover {
+      background-color: #2980b9;
+    }
+    
+    .btn-success {
+      background-color: #27ae60;
+      color: white;
+    }
+    
+    .btn-success:hover {
+      background-color: #229954;
+    }
+    
+    .btn-warning {
+      background-color: #f39c12;
+      color: white;
+    }
+    
+    .btn-warning:hover {
+      background-color: #e67e22;
+    }
+    
+    .message {
+      padding: 15px;
+      margin-top: 20px;
+      border-radius: 4px;
+      display: none;
+    }
+    
+    .message.success {
+      background-color: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+    }
+    
+    .message.error {
+      background-color: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+    }
+    
+    .loading {
+      display: none;
+      text-align: center;
+      margin-top: 20px;
+    }
+    
+    .spinner {
+      border: 4px solid #f3f3f3;
+      border-top: 4px solid #3498db;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+      margin: 0 auto;
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    
+    .info-box {
+      background-color: #e8f4f8;
+      padding: 15px;
+      border-left: 4px solid #3498db;
+      margin-bottom: 20px;
+      border-radius: 4px;
+    }
+    
+    .info-box p {
+      margin: 5px 0;
+      color: #2c3e50;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>📊 報表寄送機器人</h1>
+    
+    <div class="info-box">
+      <p><strong>功能說明：</strong></p>
+      <p>• 設定報表參數和收件者</p>
+      <p>• 自動產生每日銷售報表</p>
+      <p>• 定時自動寄送或手動觸發</p>
+    </div>
+    
+    <form id="configForm">
+      <div class="form-group">
+        <label for="recipient">收件者 Email：</label>
+        <input type="email" id="recipient" name="recipient" required 
+               placeholder="請輸入收件者 Email">
+      </div>
+      
+      <div class="form-group">
+        <label for="reportType">報表類型：</label>
+        <select id="reportType" name="reportType">
+          <option value="每日銷售統計">每日銷售統計</option>
+          <option value="每週銷售統計">每週銷售統計</option>
+          <option value="每月銷售統計">每月銷售統計</option>
+        </select>
+      </div>
+      
+      <div class="form-group">
+        <label for="sendTime">寄送時間：</label>
+        <input type="time" id="sendTime" name="sendTime" value="09:00">
+      </div>
+      
+      <div class="form-group">
+        <input type="checkbox" id="enabled" name="enabled" checked>
+        <label for="enabled" class="checkbox-label">啟用自動寄送</label>
+      </div>
+      
+      <div class="button-group">
+        <button type="button" class="btn-primary" onclick="saveSettings()">
+          💾 儲存設定
+        </button>
+        <button type="button" class="btn-success" onclick="sendNow()">
+          📧 立即寄送
+        </button>
+        <button type="button" class="btn-warning" onclick="setupSchedule()">
+          ⏰ 設定排程
+        </button>
+      </div>
+    </form>
+    
+    <div class="loading" id="loading">
+      <div class="spinner"></div>
+      <p>處理中...</p>
+    </div>
+    
+    <div class="message" id="message"></div>
+  </div>
+
+  <script>
+    // 頁面載入時取得目前設定
+    window.onload = function() {
+      loadConfig();
+    };
+    
+    /**
+     * 載入目前設定
+     */
+    function loadConfig() {
+      showLoading(true);
+      
+      google.script.run
+        .withSuccessHandler(function(config) {
+          document.getElementById('recipient').value = config.recipient || '';
+          document.getElementById('reportType').value = config.reportType || '每日銷售統計';
+          document.getElementById('sendTime').value = config.sendTime || '09:00';
+          document.getElementById('enabled').checked = config.enabled !== false;
+          
+          showLoading(false);
+        })
+        .withFailureHandler(function(error) {
+          showMessage('載入設定失敗：' + error.message, 'error');
+          showLoading(false);
+        })
+        .getConfig();
+    }
+    
+    /**
+     * 儲存設定
+     */
+    function saveSettings() {
+      var config = {
+        recipient: document.getElementById('recipient').value,
+        reportType: document.getElementById('reportType').value,
+        sendTime: document.getElementById('sendTime').value,
+        enabled: document.getElementById('enabled').checked
+      };
+      
+      if (!config.recipient) {
+        showMessage('請輸入收件者 Email', 'error');
+        return;
+      }
+      
+      showLoading(true);
+      
+      google.script.run
+        .withSuccessHandler(function(result) {
+          if (result.success) {
+            showMessage(result.message, 'success');
+          } else {
+            showMessage(result.message, 'error');
+          }
+          showLoading(false);
+        })
+        .withFailureHandler(function(error) {
+          showMessage('儲存失敗：' + error.message, 'error');
+          showLoading(false);
+        })
+        .saveConfig(config);
+    }
+    
+    /**
+     * 立即寄送報表
+     */
+    function sendNow() {
+      if (!confirm('確定要立即寄送報表嗎？')) {
+        return;
+      }
+      
+      showLoading(true);
+      
+      google.script.run
+        .withSuccessHandler(function(result) {
+          if (result.success) {
+            showMessage(result.message, 'success');
+          } else {
+            showMessage(result.message, 'error');
+          }
+          showLoading(false);
+        })
+        .withFailureHandler(function(error) {
+          showMessage('寄送失敗：' + error.message, 'error');
+          showLoading(false);
+        })
+        .sendReport();
+    }
+    
+    /**
+     * 設定排程
+     */
+    function setupSchedule() {
+      if (!confirm('確定要設定定時排程嗎？\n系統將根據您設定的時間自動寄送報表。')) {
+        return;
+      }
+      
+      showLoading(true);
+      
+      google.script.run
+        .withSuccessHandler(function() {
+          showMessage('排程設定成功！系統將在指定時間自動寄送報表。', 'success');
+          showLoading(false);
+        })
+        .withFailureHandler(function(error) {
+          showMessage('排程設定失敗：' + error.message, 'error');
+          showLoading(false);
+        })
+        .setupTrigger();
+    }
+    
+    /**
+     * 顯示訊息
+     */
+    function showMessage(text, type) {
+      var messageDiv = document.getElementById('message');
+      messageDiv.textContent = text;
+      messageDiv.className = 'message ' + type;
+      messageDiv.style.display = 'block';
+      
+      setTimeout(function() {
+        messageDiv.style.display = 'none';
+      }, 5000);
+    }
+    
+    /**
+     * 顯示/隱藏載入動畫
+     */
+    function showLoading(show) {
+      document.getElementById('loading').style.display = show ? 'block' : 'none';
+      
+      var buttons = document.querySelectorAll('button');
+      for (var i = 0; i < buttons.length; i++) {
+        buttons[i].disabled = show;
+      }
+    }
+  </script>
+</body>
+</html>

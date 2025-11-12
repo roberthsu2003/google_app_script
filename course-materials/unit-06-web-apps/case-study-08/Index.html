@@ -1,0 +1,756 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <meta charset="UTF-8">
+  <title>檔案上傳管理工具</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: Arial, "Microsoft JhengHei", sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+    
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+    
+    .header {
+      background-color: white;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+      margin-bottom: 20px;
+      text-align: center;
+    }
+    
+    .header h1 {
+      color: #2c3e50;
+      margin-bottom: 10px;
+    }
+    
+    .header p {
+      color: #7f8c8d;
+    }
+    
+    .stats {
+      display: flex;
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+    
+    .stat-card {
+      flex: 1;
+      background-color: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+      text-align: center;
+    }
+    
+    .stat-card .number {
+      font-size: 32px;
+      font-weight: bold;
+      color: #667eea;
+      margin-bottom: 5px;
+    }
+    
+    .stat-card .label {
+      color: #7f8c8d;
+      font-size: 14px;
+    }
+    
+    .main-content {
+      display: grid;
+      grid-template-columns: 1fr 2fr;
+      gap: 20px;
+    }
+    
+    .upload-section {
+      background-color: white;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    }
+    
+    .upload-section h2 {
+      color: #2c3e50;
+      margin-bottom: 20px;
+      font-size: 20px;
+    }
+    
+    .upload-area {
+      border: 3px dashed #667eea;
+      border-radius: 10px;
+      padding: 40px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s;
+      margin-bottom: 20px;
+    }
+    
+    .upload-area:hover {
+      background-color: #f8f9fa;
+      border-color: #764ba2;
+    }
+    
+    .upload-area.dragover {
+      background-color: #e8f4f8;
+      border-color: #3498db;
+    }
+    
+    .upload-icon {
+      font-size: 48px;
+      margin-bottom: 15px;
+    }
+    
+    .upload-text {
+      color: #7f8c8d;
+      margin-bottom: 10px;
+    }
+    
+    .file-input {
+      display: none;
+    }
+    
+    .btn {
+      padding: 12px 24px;
+      border: none;
+      border-radius: 6px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: all 0.3s;
+      font-weight: bold;
+    }
+    
+    .btn-primary {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+    }
+    
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 10px rgba(102, 126, 234, 0.4);
+    }
+    
+    .btn-primary:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
+    
+    .file-list-section {
+      background-color: white;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    }
+    
+    .file-list-section h2 {
+      color: #2c3e50;
+      margin-bottom: 20px;
+      font-size: 20px;
+    }
+    
+    .search-box {
+      margin-bottom: 20px;
+    }
+    
+    .search-box input {
+      width: 100%;
+      padding: 12px;
+      border: 2px solid #e0e0e0;
+      border-radius: 6px;
+      font-size: 14px;
+    }
+    
+    .search-box input:focus {
+      outline: none;
+      border-color: #667eea;
+    }
+    
+    .file-list {
+      max-height: 500px;
+      overflow-y: auto;
+    }
+    
+    .file-item {
+      display: flex;
+      align-items: center;
+      padding: 15px;
+      border: 1px solid #e0e0e0;
+      border-radius: 6px;
+      margin-bottom: 10px;
+      transition: all 0.3s;
+    }
+    
+    .file-item:hover {
+      background-color: #f8f9fa;
+      border-color: #667eea;
+    }
+    
+    .file-icon {
+      font-size: 32px;
+      margin-right: 15px;
+    }
+    
+    .file-info {
+      flex: 1;
+    }
+    
+    .file-name {
+      font-weight: bold;
+      color: #2c3e50;
+      margin-bottom: 5px;
+    }
+    
+    .file-meta {
+      font-size: 12px;
+      color: #7f8c8d;
+    }
+    
+    .file-actions {
+      display: flex;
+      gap: 10px;
+    }
+    
+    .btn-small {
+      padding: 6px 12px;
+      font-size: 12px;
+      border-radius: 4px;
+      border: none;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    
+    .btn-view {
+      background-color: #3498db;
+      color: white;
+    }
+    
+    .btn-view:hover {
+      background-color: #2980b9;
+    }
+    
+    .message {
+      padding: 15px;
+      border-radius: 6px;
+      margin-bottom: 20px;
+      display: none;
+    }
+    
+    .message.success {
+      background-color: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+    }
+    
+    .message.error {
+      background-color: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+    }
+    
+    .message.info {
+      background-color: #d1ecf1;
+      color: #0c5460;
+      border: 1px solid #bee5eb;
+    }
+    
+    .progress-bar {
+      width: 100%;
+      height: 30px;
+      background-color: #e0e0e0;
+      border-radius: 15px;
+      overflow: hidden;
+      margin-top: 15px;
+      display: none;
+    }
+    
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+      width: 0%;
+      transition: width 0.3s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 12px;
+      font-weight: bold;
+    }
+    
+    .empty-state {
+      text-align: center;
+      padding: 40px;
+      color: #7f8c8d;
+    }
+    
+    .empty-state-icon {
+      font-size: 64px;
+      margin-bottom: 15px;
+    }
+    
+    @media (max-width: 768px) {
+      .main-content {
+        grid-template-columns: 1fr;
+      }
+      
+      .stats {
+        flex-direction: column;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- 標題區 -->
+    <div class="header">
+      <h1>📁 檔案上傳管理工具</h1>
+      <p>輕鬆上傳、管理和分享您的檔案</p>
+    </div>
+    
+    <!-- 統計資訊 -->
+    <div class="stats">
+      <div class="stat-card">
+        <div class="number" id="totalFiles">0</div>
+        <div class="label">總檔案數</div>
+      </div>
+      <div class="stat-card">
+        <div class="number" id="totalSize">0 MB</div>
+        <div class="label">總大小</div>
+      </div>
+      <div class="stat-card">
+        <div class="number" id="totalUploaders">0</div>
+        <div class="label">上傳者</div>
+      </div>
+    </div>
+    
+    <!-- 主要內容 -->
+    <div class="main-content">
+      <!-- 上傳區 -->
+      <div class="upload-section">
+        <h2>📤 上傳檔案</h2>
+        
+        <div class="message" id="uploadMessage"></div>
+        
+        <div class="upload-area" id="uploadArea">
+          <div class="upload-icon">☁️</div>
+          <div class="upload-text">
+            <strong>點擊或拖曳檔案到此處</strong><br>
+            <span id="uploadHint">支援多種檔案格式</span>
+          </div>
+          <input type="file" id="fileInput" class="file-input">
+        </div>
+        
+        <button class="btn btn-primary" id="uploadBtn" style="width: 100%;" disabled>
+          選擇檔案
+        </button>
+        
+        <div class="progress-bar" id="progressBar">
+          <div class="progress-fill" id="progressFill">0%</div>
+        </div>
+      </div>
+      
+      <!-- 檔案清單區 -->
+      <div class="file-list-section">
+        <h2>📋 檔案清單</h2>
+        
+        <div class="search-box">
+          <input type="text" id="searchInput" placeholder="🔍 搜尋檔案名稱或上傳者...">
+        </div>
+        
+        <div class="file-list" id="fileList">
+          <div class="empty-state">
+            <div class="empty-state-icon">📂</div>
+            <p>尚無檔案</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    var selectedFile = null;
+    var uploadConfig = null;
+    
+    // 頁面載入時初始化
+    window.onload = function() {
+      loadConfig();
+      loadStatistics();
+      loadFileList();
+      setupEventListeners();
+    };
+    
+    /**
+     * 載入上傳設定
+     */
+    function loadConfig() {
+      google.script.run
+        .withSuccessHandler(function(config) {
+          uploadConfig = config;
+          updateUploadHint();
+        })
+        .withFailureHandler(function(error) {
+          showMessage('載入設定失敗：' + error.message, 'error', 'uploadMessage');
+        })
+        .getUploadConfig();
+    }
+    
+    /**
+     * 更新上傳提示
+     */
+    function updateUploadHint() {
+      if (!uploadConfig) return;
+      
+      var hint = '檔案大小限制：' + uploadConfig.maxFileSizeMB + ' MB';
+      if (!uploadConfig.allowAllTypes) {
+        hint += ' | 支援：PDF, 圖片, Word, Excel';
+      }
+      document.getElementById('uploadHint').textContent = hint;
+    }
+    
+    /**
+     * 設定事件監聽器
+     */
+    function setupEventListeners() {
+      var uploadArea = document.getElementById('uploadArea');
+      var fileInput = document.getElementById('fileInput');
+      var uploadBtn = document.getElementById('uploadBtn');
+      var searchInput = document.getElementById('searchInput');
+      
+      // 點擊上傳區域
+      uploadArea.addEventListener('click', function() {
+        fileInput.click();
+      });
+      
+      // 選擇檔案
+      fileInput.addEventListener('change', function(e) {
+        if (e.target.files.length > 0) {
+          handleFileSelect(e.target.files[0]);
+        }
+      });
+      
+      // 拖曳事件
+      uploadArea.addEventListener('dragover', function(e) {
+        e.preventDefault();
+        uploadArea.classList.add('dragover');
+      });
+      
+      uploadArea.addEventListener('dragleave', function(e) {
+        e.preventDefault();
+        uploadArea.classList.remove('dragover');
+      });
+      
+      uploadArea.addEventListener('drop', function(e) {
+        e.preventDefault();
+        uploadArea.classList.remove('dragover');
+        
+        if (e.dataTransfer.files.length > 0) {
+          handleFileSelect(e.dataTransfer.files[0]);
+        }
+      });
+      
+      // 上傳按鈕
+      uploadBtn.addEventListener('click', function() {
+        if (selectedFile) {
+          uploadFile();
+        } else {
+          fileInput.click();
+        }
+      });
+      
+      // 搜尋
+      searchInput.addEventListener('input', function() {
+        var keyword = this.value.trim();
+        if (keyword) {
+          searchFiles(keyword);
+        } else {
+          loadFileList();
+        }
+      });
+    }
+    
+    /**
+     * 處理檔案選擇
+     */
+    function handleFileSelect(file) {
+      selectedFile = file;
+      
+      // 更新上傳區域顯示
+      var uploadArea = document.getElementById('uploadArea');
+      uploadArea.innerHTML = '<div class="upload-icon">📄</div>' +
+        '<div class="upload-text">' +
+        '<strong>' + file.name + '</strong><br>' +
+        '<span>' + formatFileSize(file.size / 1024) + '</span>' +
+        '</div>';
+      
+      // 啟用上傳按鈕
+      var uploadBtn = document.getElementById('uploadBtn');
+      uploadBtn.textContent = '開始上傳';
+      uploadBtn.disabled = false;
+    }
+    
+    /**
+     * 上傳檔案
+     */
+    function uploadFile() {
+      if (!selectedFile) return;
+      
+      // 驗證檔案大小
+      var fileSizeMB = selectedFile.size / 1024 / 1024;
+      if (uploadConfig && fileSizeMB > uploadConfig.maxFileSizeMB) {
+        showMessage('檔案大小超過限制（' + uploadConfig.maxFileSizeMB + ' MB）', 'error', 'uploadMessage');
+        return;
+      }
+      
+      showMessage('正在上傳...', 'info', 'uploadMessage');
+      showProgress(true);
+      
+      var uploadBtn = document.getElementById('uploadBtn');
+      uploadBtn.disabled = true;
+      
+      // 讀取檔案為 Base64
+      var reader = new FileReader();
+      
+      reader.onload = function(e) {
+        var base64Data = e.target.result.split(',')[1];
+        
+        // 模擬進度
+        updateProgress(30);
+        
+        google.script.run
+          .withSuccessHandler(function(result) {
+            updateProgress(100);
+            
+            if (result.success) {
+              showMessage('✅ ' + result.message, 'success', 'uploadMessage');
+              resetUploadArea();
+              loadStatistics();
+              loadFileList();
+            } else {
+              showMessage('❌ ' + result.message, 'error', 'uploadMessage');
+            }
+            
+            setTimeout(function() {
+              showProgress(false);
+              uploadBtn.disabled = false;
+            }, 1000);
+          })
+          .withFailureHandler(function(error) {
+            showMessage('❌ 上傳失敗：' + error.message, 'error', 'uploadMessage');
+            showProgress(false);
+            uploadBtn.disabled = false;
+          })
+          .uploadFile(base64Data, selectedFile.name, selectedFile.type);
+        
+        updateProgress(60);
+      };
+      
+      reader.onerror = function() {
+        showMessage('❌ 讀取檔案失敗', 'error', 'uploadMessage');
+        showProgress(false);
+        uploadBtn.disabled = false;
+      };
+      
+      reader.readAsDataURL(selectedFile);
+    }
+    
+    /**
+     * 重置上傳區域
+     */
+    function resetUploadArea() {
+      selectedFile = null;
+      document.getElementById('fileInput').value = '';
+      document.getElementById('uploadArea').innerHTML =
+        '<div class="upload-icon">☁️</div>' +
+        '<div class="upload-text">' +
+        '<strong>點擊或拖曳檔案到此處</strong><br>' +
+        '<span id="uploadHint">支援多種檔案格式</span>' +
+        '</div>';
+      
+      updateUploadHint();
+      
+      var uploadBtn = document.getElementById('uploadBtn');
+      uploadBtn.textContent = '選擇檔案';
+      uploadBtn.disabled = true;
+    }
+    
+    /**
+     * 載入統計資訊
+     */
+    function loadStatistics() {
+      google.script.run
+        .withSuccessHandler(function(stats) {
+          document.getElementById('totalFiles').textContent = stats.totalFiles;
+          document.getElementById('totalSize').textContent = stats.totalSizeMB + ' MB';
+          document.getElementById('totalUploaders').textContent = stats.uploaders;
+        })
+        .withFailureHandler(function(error) {
+          console.error('載入統計失敗：' + error.message);
+        })
+        .getStatistics();
+    }
+    
+    /**
+     * 載入檔案清單
+     */
+    function loadFileList() {
+      google.script.run
+        .withSuccessHandler(function(files) {
+          displayFileList(files);
+        })
+        .withFailureHandler(function(error) {
+          console.error('載入檔案清單失敗：' + error.message);
+        })
+        .getFileList(50);
+    }
+    
+    /**
+     * 搜尋檔案
+     */
+    function searchFiles(keyword) {
+      google.script.run
+        .withSuccessHandler(function(files) {
+          displayFileList(files);
+        })
+        .withFailureHandler(function(error) {
+          console.error('搜尋失敗：' + error.message);
+        })
+        .searchFiles(keyword);
+    }
+    
+    /**
+     * 顯示檔案清單
+     */
+    function displayFileList(files) {
+      var fileList = document.getElementById('fileList');
+      
+      if (files.length === 0) {
+        fileList.innerHTML = '<div class="empty-state">' +
+          '<div class="empty-state-icon">📂</div>' +
+          '<p>尚無檔案</p>' +
+          '</div>';
+        return;
+      }
+      
+      var html = '';
+      for (var i = 0; i < files.length; i++) {
+        var file = files[i];
+        var icon = getFileIcon(file.mimeType);
+        var timestamp = formatDate(new Date(file.timestamp));
+        
+        html += '<div class="file-item">' +
+          '<div class="file-icon">' + icon + '</div>' +
+          '<div class="file-info">' +
+          '<div class="file-name">' + file.fileName + '</div>' +
+          '<div class="file-meta">' +
+          formatFileSize(file.fileSizeKB) + ' | ' +
+          file.uploader + ' | ' +
+          timestamp +
+          '</div>' +
+          '</div>' +
+          '<div class="file-actions">' +
+          '<button class="btn-small btn-view" onclick="openFile(\'' + file.shareUrl + '\')">開啟</button>' +
+          '</div>' +
+          '</div>';
+      }
+      
+      fileList.innerHTML = html;
+    }
+    
+    /**
+     * 開啟檔案
+     */
+    function openFile(url) {
+      window.open(url, '_blank');
+    }
+    
+    /**
+     * 取得檔案圖示
+     */
+    function getFileIcon(mimeType) {
+      var icons = {
+        'application/pdf': '📄',
+        'image/jpeg': '🖼️',
+        'image/png': '🖼️',
+        'image/gif': '🖼️',
+        'application/msword': '📝',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document': '📝',
+        'application/vnd.ms-excel': '📊',
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': '📊',
+        'application/zip': '📦',
+        'text/plain': '📃'
+      };
+      
+      return icons[mimeType] || '📎';
+    }
+    
+    /**
+     * 格式化檔案大小
+     */
+    function formatFileSize(sizeKB) {
+      if (sizeKB < 1024) {
+        return sizeKB.toFixed(2) + ' KB';
+      } else {
+        return (sizeKB / 1024).toFixed(2) + ' MB';
+      }
+    }
+    
+    /**
+     * 格式化日期
+     */
+    function formatDate(date) {
+      var year = date.getFullYear();
+      var month = ('0' + (date.getMonth() + 1)).slice(-2);
+      var day = ('0' + date.getDate()).slice(-2);
+      var hours = ('0' + date.getHours()).slice(-2);
+      var minutes = ('0' + date.getMinutes()).slice(-2);
+      
+      return year + '-' + month + '-' + day + ' ' + hours + ':' + minutes;
+    }
+    
+    /**
+     * 顯示訊息
+     */
+    function showMessage(text, type, elementId) {
+      var messageDiv = document.getElementById(elementId);
+      messageDiv.textContent = text;
+      messageDiv.className = 'message ' + type;
+      messageDiv.style.display = 'block';
+      
+      setTimeout(function() {
+        messageDiv.style.display = 'none';
+      }, 5000);
+    }
+    
+    /**
+     * 顯示/隱藏進度條
+     */
+    function showProgress(show) {
+      var progressBar = document.getElementById('progressBar');
+      progressBar.style.display = show ? 'block' : 'none';
+      if (!show) {
+        updateProgress(0);
+      }
+    }
+    
+    /**
+     * 更新進度
+     */
+    function updateProgress(percent) {
+      var progressFill = document.getElementById('progressFill');
+      progressFill.style.width = percent + '%';
+      progressFill.textContent = percent + '%';
+    }
+  </script>
+</body>
+</html>

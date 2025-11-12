@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top">
+    <title>範本範例</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 50px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+      .card {
+        background: white;
+        padding: 40px;
+        border-radius: 10px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        text-align: center;
+      }
+      h1 {
+        color: #667eea;
+        margin-bottom: 20px;
+      }
+      .info {
+        color: #666;
+        margin: 10px 0;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <h1>使用者資訊</h1>
+      <div class="info">
+        <strong>姓名：</strong><?= userName ?>
+      </div>
+      <div class="info">
+        <strong>年齡：</strong><?= userAge ?>
+      </div>
+      <div class="info">
+        <strong>當前時間：</strong><?= currentDate ?>
+      </div>
+    </div>
+  </body>
+</html>
