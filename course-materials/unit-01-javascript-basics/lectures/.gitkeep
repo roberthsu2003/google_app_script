@@ -1,0 +1,13 @@
+# 講義資料夾
+
+本資料夾存放單元 1 的講義文件。
+
+## 預計內容
+
+- 1.1-gas-introduction.md - GAS 簡介
+- 1.2-variables-datatypes.md - 變數與資料型別
+- 1.3-control-flow.md - 流程控制
+- 1.4-functions.md - 函式
+- 1.5-arrays.md - 陣列操作
+- 1.6-objects-strings.md - 物件與字串
+- 1.7-error-handling.md - 錯誤處理
